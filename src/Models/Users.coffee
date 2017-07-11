@@ -1,10 +1,12 @@
 BaseModel = require '../BaseModel'
 
+nop = ->
+
 class Users extends BaseModel
   init: =>
     @keys = @load 'UserKeys'
 
-  all: (params = {}, fn = null) =>
+  all: (params = {}, fn = nop) =>
     if 'function' is typeof params
       fn = params
       params = {}
@@ -28,29 +30,29 @@ class Users extends BaseModel
 
     @get "users", params, cb
 
-  current: (fn = null) =>
+  current: (fn = nop) =>
     @debug "Users::current()"
     @get "user", (data) -> fn data if fn
 
-  show: (userId, fn = null) =>
+  show: (userId, fn = nop) =>
     @debug "Users::show()"
     @get "users/#{parseInt userId}", (data) => fn data if fn
 
-  create: (params = {}, fn = null) =>
+  create: (params = {}, fn = nop) =>
     @debug "Users::create()", params
     @post "users", params, (data) -> fn data if fn
 
-  session: (email, password, fn = null) =>
+  session: (email, password, fn = nop) =>
     @debug "Users::session()"
     params =
       email: email
       password: password
     @post "session", params, (data) -> fn data if fn
 
-  search: (emailOrUsername, fn = null) =>
+  search: (emailOrUsername, fn = nop) =>
     @debug "Users::search(#{emailOrUsername})"
     params =
       search: emailOrUsername
-    @get "users", params, (data) -> fn data if fn
+    @get "users", params, fn
 
 module.exports = (client) -> new Users client

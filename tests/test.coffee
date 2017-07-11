@@ -53,7 +53,7 @@ describe 'Project', ->
       mock.get = (opts, cb) ->
         cb(null, {}, mock.projects)
     it 'should retrieve array of projects without error', (done) ->
-      gitlab.projects.all (projects) ->
+      gitlab.projects.all (err, projects) ->
         assert projects.length > 0
         validate_project project for project in projects
         done()

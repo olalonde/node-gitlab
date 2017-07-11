@@ -1,5 +1,7 @@
 BaseModel = require '../BaseModel'
 
+nop = ->
+
 class Groups extends BaseModel
   init: =>
     @access_levels =
@@ -9,7 +11,7 @@ class Groups extends BaseModel
       MASTER:     40
       OWNER:      50
 
-  all: (params = {}, fn = null) =>
+  all: (params = {}, fn = nop) =>
     if 'function' is typeof params
       fn = params
       params = {}
@@ -21,7 +23,7 @@ class Groups extends BaseModel
     data = []
     cb = (err, retData) =>
       if err
-        return fn(retData || data) if fn
+        return fn(err, retData || data)
       else if retData.length == params.per_page
         @debug "Recurse Groups::all()"
         data = data.concat(retData)
@@ -29,21 +31,21 @@ class Groups extends BaseModel
         return @get "groups", params, cb
       else
         data = data.concat(retData)
-        return fn data if fn
+        return fn
 
     @get "groups", params, cb
 
-  show: (groupId, fn = null) =>
+  show: (groupId, fn = nop) =>
     @debug "Groups::show()"
-    @get "groups/#{parseInt groupId}", (data) => fn data if fn
+    @get "groups/#{parseInt groupId}", fn
 
-  listProjects: (groupId, fn = null) =>
+  listProjects: (groupId, fn = nop) =>
     @debug "Groups::listProjects()"
-    @get "groups/#{parseInt groupId}", (data) => fn data.projects if fn
+    @get "groups/#{parseInt groupId}", fn
 
-  listMembers: (groupId, fn = null) =>
+  listMembers: (groupId, fn = nop) =>
     @debug "Groups::listMembers()"
-    @get "groups/#{parseInt groupId}/members", (data) => fn data if fn
+    @get "groups/#{parseInt groupId}/members", fn
 
   addMember: (groupId, userId, accessLevel, fn=null) =>
     @debug "addMember(#{groupId}, #{userId}, #{accessLevel})"
@@ -60,9 +62,9 @@ class Groups extends BaseModel
       user_id: userId
       access_level: accessLevel
 
-    @post "groups/#{parseInt groupId}/members", params, (data) -> fn data if fn
+    @post "groups/#{parseInt groupId}/members", params, fn
 
-  editMember: (groupId, userId, accessLevel, fn = null) =>
+  editMember: (groupId, userId, accessLevel, fn = nop) =>
     @debug "Groups::editMember(#{groupId}, #{userId}, #{accessLevel})"
 
     checkAccessLevel = =>
@@ -76,28 +78,28 @@ class Groups extends BaseModel
     params =
       access_level: accessLevel
 
-    @put "groups/#{parseInt groupId}/members/#{parseInt userId}", params, (data) -> fn data if fn
+    @put "groups/#{parseInt groupId}/members/#{parseInt userId}", params, fn
 
-  removeMember: (groupId, userId, fn = null) =>
+  removeMember: (groupId, userId, fn = nop) =>
     @debug "Groups::removeMember(#{groupId}, #{userId})"
-    @delete "groups/#{parseInt groupId}/members/#{parseInt userId}", (data) -> fn data if fn
+    @delete "groups/#{parseInt groupId}/members/#{parseInt userId}", fn
 
-  create: (params = {}, fn = null) =>
+  create: (params = {}, fn = nop) =>
     @debug "Groups::create()"
-    @post "groups", params, (data) -> fn data if fn
+    @post "groups", params, fn
 
-  addProject: (groupId, projectId, fn = null) =>
+  addProject: (groupId, projectId, fn = nop) =>
     @debug "Groups::addProject(#{groupId}, #{projectId})"
-    @post "groups/#{parseInt groupId}/projects/#{parseInt projectId}", null, (data) -> fn data if fn
+    @post "groups/#{parseInt groupId}/projects/#{parseInt projectId}", null, fn
 
-  deleteGroup: (groupId, fn = null) =>
+  deleteGroup: (groupId, fn = nop) =>
     @debug "Groups::delete(#{groupId})"
-    @delete "groups/#{parseInt groupId}", (data) -> fn data if fn
+    @delete "groups/#{parseInt groupId}", fn
 
-  search: (nameOrPath, fn = null) =>
+  search: (nameOrPath, fn = nop) =>
     @debug "Groups::search(#{nameOrPath})"
     params =
       search: nameOrPath
-    @get "groups", params,  (data) -> fn data if fn
+    @get "groups", params, fn
 
 module.exports = (client) -> new Groups client

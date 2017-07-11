@@ -3,6 +3,12 @@ debug = require('debug') 'gitlab:ApiBaseHTTP'
 querystring = require 'querystring'
 slumber = require 'slumber'
 
+maybeParse = (o) ->
+  if typeof o == 'string'
+    return JSON.parse(o)
+  return o
+
+nop = ->
 
 class module.exports.ApiBaseHTTP extends ApiBase
   handleOptions: =>
@@ -38,13 +44,14 @@ class module.exports.ApiBaseHTTP extends ApiBase
       opts.headers = { 'Authorization': 'Bearer ' + @options.oauth_token }
     return opts
 
-  fn_wrapper: (fn) =>
+  fn_wrapper: (fn = nop) =>
     return (err, response, ret) =>
-      arity = fn.length
-      switch arity
-        when 1 then fn ret
-        when 2 then fn err, ret || JSON.parse(response.body).message
-        when 3 then fn err, response, ret
+      if (err)
+        if (!(err instanceof Error))
+          err = new Error(response.body.message)
+        err.response = response
+        return fn(err)
+      fn(null, ret, response)
 
   get: (path, query={}, fn=null) =>
     if 'function' is typeof query

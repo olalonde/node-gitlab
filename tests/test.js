@@ -68,7 +68,7 @@
         };
       });
       return it('should retrieve array of projects without error', function(done) {
-        return gitlab.projects.all(function(projects) {
+        return gitlab.projects.all(function(err, projects) {
           var i, len, project;
           assert(projects.length > 0);
           for (i = 0, len = projects.length; i < len; i++) {
